@@ -1,0 +1,56 @@
+{
+  "scenario_id": "SCN-01",
+  "title": "Monsoon Cascade",
+  "description": "6-minute automated narrative demo scenario simulating severe monsoon cloudburst over Khasi hills, landslide road blockage on NH-6 corridor, autonomous 9-stage replan cascade, and officer approval gate.",
+  "beats": [
+    {
+      "beat": 0,
+      "name": "Cold Open",
+      "sim_hour": 0,
+      "screen": "S1",
+      "description": "Baseline calm morning at 06:00. All routes green, normal dispatch."
+    },
+    {
+      "beat": 1,
+      "name": "Storm Advance",
+      "sim_hour": 18,
+      "screen": "S3",
+      "description": "Rainfall builds in Khasi hills. Heatmap hexes cascade orange as antecedent rain saturates slopes."
+    },
+    {
+      "beat": 2,
+      "name": "Pre-Positioning Advice",
+      "sim_hour": 24,
+      "screen": "S3",
+      "description": "Pre-positioning advisor fires for Jowai sub-depot before time-to-isolation reaches zero."
+    },
+    {
+      "beat": 3,
+      "name": "Landslide Blockage",
+      "sim_hour": 36,
+      "screen": "S5",
+      "description": "Control room confirms major landslide on NH-6 trunk segment #100001. 9-stage cascade fires."
+    },
+    {
+      "beat": 4,
+      "name": "Autonomous Replan Proposed",
+      "sim_hour": 36,
+      "screen": "S5",
+      "description": "Cascade completes in < 2.5s. Proposed plan: 4 vehicles rerouted, 1 emergency protected, 2 deferred."
+    },
+    {
+      "beat": 5,
+      "name": "Officer Approval Gate",
+      "sim_hour": 36,
+      "screen": "S5",
+      "description": "Officer reviews risk badges and approves dispatch. Field drivers receive change cards."
+    },
+    {
+      "beat": 6,
+      "name": "Judge Counterfactual What-If",
+      "sim_hour": 36,
+      "screen": "S6",
+      "description": "Judge map-picks Shillong bypass to close. Counterfactual simulator returns diff in < 3s."
+    }
+  ]
+}

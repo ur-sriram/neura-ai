@@ -1,0 +1,46 @@
+version: '3.9'
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: nesetu
+      POSTGRES_USER: nesetu
+      POSTGRES_PASSWORD: nesetu_dev
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nesetu"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://nesetu:nesetu_dev@db:5432/nesetu
+      JWT_SECRET: change_in_prod_32chars_minimum
+      SIM_START_HOUR: 0
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  web:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    volumes:
+      - ./frontend:/app
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  db_data:
