@@ -1,0 +1,8 @@
+.scenario-readout { margin: 0 18px 18px; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #efdbe3; background: #fff9fb; }
+.scenario-readout > div { min-height: 74px; padding: 12px; display: grid; grid-template-columns: 20px 1fr; column-gap: 8px; align-content: center; border-right: 1px solid #efdbe3; border-bottom: 1px solid #efdbe3; }
+.scenario-readout > div:nth-child(2n) { border-right: 0; }
+.scenario-readout > div:nth-last-child(-n + 2) { border-bottom: 0; }
+.scenario-readout svg { grid-row: span 2; color: var(--pink); margin-top: 2px; }
+.scenario-readout span { font: 500 9px 'DM Mono'; letter-spacing: .06em; color: #97808d; }
+.scenario-readout b { font-size: 10px; color: #513a46; margin-top: 3px; }
+@media (max-width: 720px) { .scenario-readout { grid-template-columns: 1fr; } .scenario-readout > div, .scenario-readout > div:nth-child(2n) { border-right: 0; } .scenario-readout > div:nth-last-child(-n + 2) { border-bottom: 1px solid #efdbe3; } .scenario-readout > div:last-child { border-bottom: 0; } }

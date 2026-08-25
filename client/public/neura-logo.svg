@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a1020"/>
+      <stop offset="100%" stop-color="#1a0a14"/>
+    </radialGradient>
+    <linearGradient id="signal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e060a0"/>
+      <stop offset="100%" stop-color="#b84b76"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect width="48" height="48" rx="10" fill="url(#bg)"/>
+  <!-- Neural signal N-shape -->
+  <polyline points="10,36 10,12 24,30 38,12 38,36"
+    fill="none" stroke="url(#signal)" stroke-width="4"
+    stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Node dots -->
+  <circle cx="10" cy="12" r="2.5" fill="#e060a0"/>
+  <circle cx="38" cy="12" r="2.5" fill="#e060a0"/>
+  <circle cx="24" cy="30" r="2.5" fill="#b84b76"/>
+  <circle cx="10" cy="36" r="2.5" fill="#b84b76"/>
+  <circle cx="38" cy="36" r="2.5" fill="#b84b76"/>
+  <!-- Subtle glow lines -->
+  <line x1="10" y1="12" x2="6" y2="8" stroke="#e060a0" stroke-width="1" stroke-opacity="0.4"/>
+  <line x1="38" y1="12" x2="42" y2="8" stroke="#e060a0" stroke-width="1" stroke-opacity="0.4"/>
+</svg>
