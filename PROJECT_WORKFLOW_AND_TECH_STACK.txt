@@ -1,0 +1,130 @@
+================================================================================
+                    NE-SETU (NEURA-AI) - PROJECT WORKFLOW & TECH STACK
+================================================================================
+
+1. COMPLETE TECHNOLOGY STACK
+--------------------------------------------------------------------------------
+
+A. FRONTEND (CLIENT LAYER)
+   - React 19: Core UI component library and reactive state management.
+   - TypeScript: Strong typing for routes, LNS segments, weather, and SOS alerts.
+   - Vite 6: High-speed frontend build tool and local dev server (HMR enabled).
+   - MapLibre GL JS: WebGL-based vector/raster map renderer for dynamic GeoJSON
+     corridors, animated line glows, city hubs, and route polyline overlays.
+   - OpenStreetMap (OSM): Base tile layer (tile.openstreetmap.org) for real-world
+     geographic cartography and terrain view.
+   - Tailwind CSS v4 + Custom CSS: Design token system, glassmorphic UI panels,
+     and dynamic status badges.
+
+B. BACKEND (INTELLIGENCE & API LAYER)
+   - Python 3.12: Core programming language for logic and APIs.
+   - FastAPI: Asynchronous, high-performance web framework for REST & WebSocket APIs.
+   - Uvicorn: ASGI web server running the backend service on 127.0.0.1:8000.
+   - Pydantic: Data validation and schemas for requests, events, and reports.
+   - HTTPX: Asynchronous HTTP client for querying external meteorological services.
+   - WebSockets (ASGI): Full-duplex real-time communication channel for pushing
+     Living Network State (LNS) updates instantly to connected frontends.
+
+C. EXTERNAL DATA SOURCES & APIS
+   - Open-Meteo API: High-resolution weather forecast API (current precipitation,
+     rainfall mm, temperature, wind speed) for Northeast India nodes.
+   - OpenStreetMap (OSM) Tiles: Global open map tiles for mapping layers.
+
+
+================================================================================
+2. SYSTEM ARCHITECTURE & DATA FLOW
+================================================================================
+
+       [ External APIs ]                      [ Community / Operators ]
+     Open-Meteo & OSM Tiles                 Hazard Reports / SCN-01 Events
+               │                                           │
+               ▼                                           ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                           FastAPI Backend Layer                           │
+│                                                                           │
+│  1. Ingest Events & Reports ──► 2. Update Living Network State (LNS)      │
+│  3. Weather Aggregator (httpx)  4. Multi-Stage Routing Engine             │
+│                                    ├─ Stage A: Hard Physical Constraints  │
+│                                    └─ Stage B: Multi-Criteria Cost (Risk) │
+└─────────────────────────────────────┬─────────────────────────────────────┘
+                                      │
+                         REST API & WebSockets (ws://)
+                                      │
+                                      ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                        React + TypeScript Frontend                        │
+│                                                                           │
+│  • Route Planner: Origin/Destination selection & vehicle class filtering   │
+│  • MapLibre GL Map: Visualizes road corridors (Green/Amber/Red glow)      │
+│  • Live Weather Panel: Real-time rain/temp indicators from Open-Meteo     │
+│  • Hazard Reporting & Emergency SOS: Real-time submission & dispatch      │
+└───────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+3. STEP-BY-STEP WORKFLOW
+================================================================================
+
+STEP 1: NETWORK INITIALIZATION & DIGITAL TWIN MODELING
+- The backend initializes an in-memory Living Network State (LNS) representing
+  key corridors in Northeast India:
+    * NH-6 Guwahati-Shillong National Highway
+    * R-114 Umroi Alternate Hill Route
+    * NH-6 Shillong-Jowai Ridge Road
+    * Byrnihat-Shillong Back Road
+- Attributes tracked per segment: Surface type (paved/mixed/gravel), bridge tonnage
+  limits, base landslide risk, flood risk, and real-time status (OPEN, SUSPECTED, CLOSED).
+
+STEP 2: REAL-TIME EVENT INGESTION & MUTATION
+- Operator Simulation: An operator flags road conditions (e.g. monsoon landslide).
+- Community Crowdsourcing: Drivers or local residents submit reports (/api/v1/reports).
+  Severe reports from verified/trusted sources automatically mutate LNS segment status.
+- WebSocket Broadcast: The backend sends an LNS_UPDATE message over ws://127.0.0.1:8000/ws
+  so all connected client browsers update their maps instantly without page reloads.
+
+STEP 3: TWO-STAGE ROUTE PLANNING ENGINE
+When a user selects Origin, Destination, Vehicle Type, and Cargo Weight:
+- Stage A (Hard Feasibility Filter):
+    * Rejects segments marked as CLOSED (unless ambulance/emergency).
+    * Enforces vehicle capability (e.g. 4x4-only terrain).
+    * Enforces bridge weight limits (e.g. rejects heavy trucks exceeding tonnage).
+- Stage B (Multi-Criteria Cost Optimization):
+    * Computes a composite cost balancing distance, landslide risk, flood risk,
+      and road surface factors.
+    * Computes P50 ETA (typical travel time) and P90 ETA (conservative estimate).
+    * Recommends the optimal route and explains why alternative paths are blocked.
+
+STEP 4: REAL-TIME MAP & WEATHER RENDERING
+- MapLibre GL + OSM: The client renders the base OSM geography, overlays glowing
+  GeoJSON corridor paths (Green = Open, Amber = Suspected, Red = Closed), and
+  highlights the selected route in purple.
+- Live Weather Hub: Calls /api/v1/weather/all to query Open-Meteo for real-time
+  rain, temperature, wind, and precipitation across Northeast hubs.
+
+STEP 5: EMERGENCY SOS DISPATCH
+- Users can dispatch urgent requests (medical evacuation, village cut-offs).
+- Emergency requests are assigned unique IDs, broadcast across the system, and
+  logged for coordination with disaster management control rooms.
+
+
+================================================================================
+4. PROJECT DIRECTORY STRUCTURE
+================================================================================
+
+Neura-ai/
+├── backend/
+│   ├── main.py            # FastAPI REST & WebSocket server, LNS state, Open-Meteo proxy
+│   ├── engine.py          # Routing algorithms and multi-criteria cost calculations
+│   └── .venv/             # Python virtual environment (Uvicorn, FastAPI, HTTPX, WebSockets)
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── Map.tsx    # Native MapLibre GL component with OSM tiles & GeoJSON layers
+│   │   ├── App.tsx        # Main dashboard UI (Route Planner, Weather, SOS, Reports)
+│   │   ├── index.css      # Design tokens, view resets, and global styles
+│   │   └── main.tsx       # Application root entry point
+│   ├── vite.config.ts     # Vite configuration
+│   └── package.json       # Node dependencies (React, MapLibre GL, Tailwind)
+│
+└── ml/                    # Machine learning modules and hazard assessment datasets

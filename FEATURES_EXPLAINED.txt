@@ -1,0 +1,43 @@
+NE-SETU: AI Adaptive Logistics Platform
+=======================================
+Feature Breakdown and Explanation
+
+1. Scenarios (Living Network State)
+-----------------------------------
+The platform operates on "Scenarios", which represent a snapshot of the Northeast India road network (nodes, edges, vehicles, demands, and depots). You can create, seed (with realistic default data), or fork scenarios to test different operational situations without affecting the live state.
+
+2. Network Map Visualization
+----------------------------
+A real-time geographical visualization of the NE-SETU corridor. It displays the status of all roads, highlighting impassable blockages (e.g., from landslides), gravel roads requiring 4x4 vehicles, and bridge weight limits.
+
+3. Simulation Engine
+--------------------
+The core dispatch system. Users can run optimization algorithms (like a Greedy heuristic or Google OR-Tools VRP) to compute the most efficient delivery plans for emergency resources across the difficult terrain, prioritizing high-urgency demands.
+
+4. What-If Simulator (F16)
+--------------------------
+Allows dispatchers to test hypothetical disruptions (e.g., "What if this major bridge collapses?") by "forking" the active scenario. The simulator runs the algorithms on this isolated clone, allowing you to see the impact on routing and delivery times without mutating the live operational data.
+
+5. Results & Analytics
+----------------------
+Detailed dashboards that provide performance metrics post-simulation. It tracks total travel time, the percentage of demands successfully met, SLA compliance, and allows side-by-side comparison of different algorithms.
+
+6. Point-to-Point Routing
+-------------------------
+An interactive tool allowing users to select any starting and ending node to instantly calculate the safest and fastest route. It dynamically factors in the current network state, such as road closures, congestion, and vehicle type (e.g., a standard vehicle cannot route over a 4x4-only gravel road).
+
+7. Disruptions & Assisted Mobility
+----------------------------------
+Simulates unexpected events and handles specialized transport requests. For example, ensuring that a person requiring a wheelchair is only assigned to an accessibility-equipped vehicle.
+
+8. Decision Log / Explainable AI (F17 & F18)
+--------------------------------------------
+Because AI algorithms can be a "black box," this feature provides human-readable transparency. For every dispatch decision made by the system, the Decision Log displays the deterministic rationale—explicitly listing the Selection Factors (why a vehicle was chosen) and Rejection Reasons (why other vehicles were deemed worse), along with calculated Risk Scores.
+
+9. Data Provenance & Trust Model (F19)
+--------------------------------------
+An audit dashboard that tracks the exact source of all incoming network intelligence. Instead of blindly trusting all data, it assigns a Trust Score based on the origin: verified IoT Sensors (100%), authorized Operators (90%), or unauthenticated Community reports (60%). 
+
+10. Citizen Reporting Form (F29)
+--------------------------------
+A mobile-friendly, field-ready interface that allows community members or on-the-ground operators to submit real-time road condition reports (e.g., reporting a partial landslide or a flooded road). These reports feed instantly into the Data Provenance system and update the active network state.
