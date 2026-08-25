@@ -1,29 +1,31 @@
-import os
-from pydantic_settings import BaseSettings
+from typing import List
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "NE-Setu Adaptive Logistics Platform"
-    API_V1_STR: str = "/api/v1"
-    
-    # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        "postgresql+asyncpg://nesetu:nesetu_dev@localhost:5432/nesetu"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",
     )
-    
-    # Auth
-    JWT_SECRET: str = os.getenv("JWT_SECRET", "nesetu_super_secret_jwt_key_2026_change_in_prod")
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
-    
-    # Sim Clock
-    SIM_START_HOUR: int = int(os.getenv("SIM_START_HOUR", "0"))
-    
-    # LLM (Optional)
-    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
-    
-    class Config:
-        case_sensitive = True
+
+    APP_NAME: str = "AI Smart Logistics & Accessibility Platform NER"
+    APP_ENV: str = "development"
+    DEBUG: bool = True
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+
+    GOOGLE_API_KEY: str = ""
+    DATABASE_URL: str = "sqlite:///./ner_logistics.db"
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173", "*"]
+
+    WEATHER_API_KEY: str = ""
+    LANGCHAIN_TRACING_V2: bool = False
+    LANGCHAIN_API_KEY: str = ""
+
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_VISION_MODEL: str = "gemini-1.5-flash"
+
 
 settings = Settings()

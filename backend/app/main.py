@@ -1,91 +1,100 @@
-import asyncio
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
+
 from app.config import settings
-from app.database import engine, Base, AsyncSessionLocal
-from app.services.websocket import ws_manager
-from app.services.sim_clock import sim_clock
-from app.ml import hazard_model, eta_model
-
-# Import routers
-from app.routers import (
-    auth, map as map_router, accessibility, events,
-    plans, optimization, simulation, demo, deliveries
-)
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("Starting NE-Setu FastAPI Application...")
-    # Initialize DB tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    print("  - Database tables initialized.")
-
-    # Load ML models
-    hazard_model.load()
-    eta_model.load()
-    print("  - ML models initialized.")
-
-    yield
-    print("Shutting down NE-Setu FastAPI Application...")
+from app.routers import logistics, accessibility, ai, emergency, communities, india_data, events
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url="/api/v1/openapi.json",
+    title=settings.APP_NAME,
+    description="AI Smart Logistics & Accessibility Platform for North Eastern Region (NER) India - Multi-agent system with LangGraph orchestration",
+    version="1.1.0",
+    contact={
+        "name": "NER Logistics Team",
+        "email": "team@ner-logistics.in",
+    },
     docs_url="/docs",
-    lifespan=lifespan
+    redoc_url="/redoc",
 )
 
-# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Mount Routers
-app.include_router(auth.router, prefix=settings.API_V1_STR)
-app.include_router(map_router.router, prefix=settings.API_V1_STR)
-app.include_router(accessibility.router, prefix=settings.API_V1_STR)
-app.include_router(events.router, prefix=settings.API_V1_STR)
-app.include_router(plans.router, prefix=settings.API_V1_STR)
-app.include_router(optimization.router, prefix=settings.API_V1_STR)
-app.include_router(simulation.router, prefix=settings.API_V1_STR)
-app.include_router(demo.router, prefix=settings.API_V1_STR)
-app.include_router(deliveries.router, prefix=settings.API_V1_STR)
+app.include_router(logistics.router, prefix="/api/logistics", tags=["Logistics"])
+app.include_router(accessibility.router, prefix="/api/accessibility", tags=["Accessibility"])
+app.include_router(ai.router, prefix="/api/ai", tags=["AI & Multi-Agent"])
+app.include_router(emergency.router, prefix="/api/emergency", tags=["Emergency"])
+app.include_router(communities.router, prefix="/api/communities", tags=["Communities"])
+app.include_router(india_data.router, prefix="/api/india-data", tags=["India Open Data (data.gov.in style)"])
+app.include_router(events.router, prefix="/api/events", tags=["Events & Disruptions"])
 
-@app.get("/health")
+
+@app.get("/health", tags=["System"])
 async def health_check():
-    """Health check endpoint required by acceptance criteria."""
-    db_status = "connected"
-    try:
-        async with AsyncSessionLocal() as session:
-            await session.execute(text("SELECT 1;"))
-    except Exception:
-        db_status = "disconnected"
-
     return {
-        "status": "ok" if db_status == "connected" else "degraded",
-        "db": db_status,
-        "sim_time": sim_clock.sim_hour,
-        "llm_available": bool(settings.LLM_API_KEY)
+        "status": "healthy",
+        "app": settings.APP_NAME,
+        "version": "1.1.0",
+        "environment": settings.APP_ENV,
+        "gemini_configured": bool(settings.GOOGLE_API_KEY),
+        "features": [
+            "weighted_route_scoring",
+            "accessibility_100_scale",
+            "event_ingestion",
+            "vehicle_intelligence",
+            "emergency_prioritization",
+            "what_if_simulation",
+            "decision_explainability",
+        ],
     }
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """Real-time WebSocket endpoint for LNS updates, clock ticks, and alert fan-out."""
-    await ws_manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_json()
-            # Echo ping check
-            if data.get("type") == "ping":
-                await websocket.send_json({"type": "pong", "sim_time": sim_clock.sim_hour})
-    except WebSocketDisconnect:
-        ws_manager.disconnect(websocket)
-    except Exception:
-        ws_manager.disconnect(websocket)
+
+@app.get("/", tags=["System"])
+async def root():
+    return {
+        "name": settings.APP_NAME,
+        "description": "AI-powered Smart Logistics & Accessibility Platform for NER India",
+        "version": "1.1.0",
+        "endpoints": {
+            "docs": "/docs",
+            "redoc": "/redoc",
+            "health": "/health",
+            "logistics": "/api/logistics",
+            "accessibility": "/api/accessibility",
+            "ai": "/api/ai",
+            "emergency": "/api/emergency",
+            "communities": "/api/communities",
+            "india_data": "/api/india-data",
+            "events": "/api/events",
+        },
+        "new_mvp_features": {
+            "route_optimization": "Weighted 7-factor composite scoring (insight-derived)",
+            "accessibility": "0-100 scale with 5 weighted components + vehicle suitability",
+            "events": "Event ingestion API for landslide/flood/road_block disruption events",
+            "vehicle_intel": "Cargo-to-vehicle matching with terrain-aware suitability",
+            "prioritization": "Emergency delivery priority scoring 0-100 with approval flags",
+            "what_if": "Disruption scenario simulator for planning",
+            "explainability": "Decision log + human-in-the-loop flags per route decision",
+        },
+        "agents": [
+            "SupervisorAgent",
+            "LogisticsAgent",
+            "AccessibilityAgent",
+            "EmergencyAgent",
+            "CommunityAgent",
+        ],
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG,
+    )

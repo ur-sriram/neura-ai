@@ -1,74 +1,58 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from app.database import get_db
-from app.models.schema import RoadSegment, SegmentOverlay, H3Cell
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Query
 
-router = APIRouter(prefix="/accessibility", tags=["Accessibility"])
+from app.models.schemas import (
+    AccessibilityScoreResponse, AccessibleRouteRequest, AccessibleRouteResponse,
+    POIListResponse, POIFilterRequest,
+)
+from app.services.accessibility_service import (
+    score_city, find_accessible_routes, list_pois,
+)
 
-@router.get("/segments/{segment_id}/score")
-async def get_segment_score(segment_id: int, vclass: str = Query('heavy'), db: AsyncSession = Depends(get_db)):
-    """Returns decomposed accessibility score factors for hover cards and detail drawers."""
-    res_seg = await db.execute(select(RoadSegment).where(RoadSegment.id == segment_id))
-    seg = res_seg.scalar_one_or_none()
-    if not seg:
-        raise HTTPException(status_code=404, detail="Road segment not found")
+router = APIRouter()
 
-    res_v = await db.execute(select(func.max(SegmentOverlay.lns_version)))
-    max_v = res_v.scalar() or 0
 
-    res_ov = await db.execute(
-        select(SegmentOverlay)
-        .where(SegmentOverlay.segment_id == segment_id)
-        .where(SegmentOverlay.lns_version == max_v)
+@router.get("/score", response_model=AccessibilityScoreResponse, summary="Accessibility score for a city/route")
+def get_score(
+    city: Optional[str] = Query(None, description="City name to score overall accessibility"),
+    route_source: Optional[str] = Query(None, description="Source city for route score"),
+    route_destination: Optional[str] = Query(None, description="Destination city for route score"),
+):
+    if not city and not (route_source and route_destination):
+        raise HTTPException(status_code=400, detail="Provide either 'city' or both 'route_source' and 'route_destination'.")
+    target = city or route_source
+    result = score_city(target)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"No data for city: {target}")
+    if route_source and route_destination:
+        result.location = f"{route_source} → {route_destination}"
+        result.recommendations.append(f"Also check destination score: /api/accessibility/score?city={route_destination}")
+    return result
+
+
+@router.post("/routes", response_model=AccessibleRouteResponse, summary="Mobility-aware route planning")
+def accessible_routes(req: AccessibleRouteRequest):
+    try:
+        return find_accessible_routes(req)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Accessible route search failed: {e}")
+
+
+@router.get("/pois", response_model=POIListResponse, summary="List accessibility-rated POIs")
+def get_pois(
+    city: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    type: Optional[str] = Query("all", description="airport | railway | bus_terminal | hospital | market | all"),
+    wheelchair_only: bool = Query(False),
+    min_rating: int = Query(0, ge=0, le=5),
+):
+    req = POIFilterRequest(
+        city=city, state=state, type=type if type in ("airport","railway","bus_terminal","hospital","market","all") else "all",
+        wheelchair_only=wheelchair_only, min_rating=min_rating,
     )
-    ov = res_ov.scalar_one_or_none()
-
-    score = getattr(ov, f'a_score_{vclass}', 100.0) if ov else 100.0
-    factors = ov.contributing_factors.get(vclass, {}) if (ov and ov.contributing_factors) else {}
-
-    return {
-        'segment_id': segment_id,
-        'lns_version': max_v,
-        'vclass': vclass,
-        'status': ov.status if ov else 'OPEN',
-        'accessibility_score': score,
-        'p_landslide_24h': ov.p_landslide_24h if ov else 0.0,
-        'confidence': ov.confidence if ov else 1.0,
-        'contributing_factors': factors
-    }
-
-@router.get("/h3")
-async def get_h3_heatmap(vclass: str = Query('heavy'), horizon: int = Query(0), db: AsyncSession = Depends(get_db)):
-    """Returns H3 hex grid choropleth FeatureCollection for S3 Accessibility Heatmap."""
-    res = await db.execute(select(H3Cell))
-    cells = res.scalars().all()
-
-    features = []
-    for c in cells:
-        mean_score = getattr(c, f'mean_a_{vclass}', 100.0) or 100.0
-        # Horizon forecast penalty adjustment
-        if horizon > 0:
-            mean_score = max(0.0, mean_score - (horizon / 72.0) * 35.0)
-
-        band = 'green'
-        if mean_score < 30.0: band = 'red'
-        elif mean_score < 50.0: band = 'orange'
-        elif mean_score < 80.0: band = 'yellow'
-
-        features.append({
-            'type': 'Feature',
-            'id': c.h3_index,
-            'properties': {
-                'h3_index': c.h3_index,
-                'population_class': c.population_class,
-                'mean_score': round(mean_score, 1),
-                'color_band': band
-            },
-            'geometry': {
-                'type': 'Polygon',
-                'coordinates': [[[91.7, 25.7], [91.9, 25.7], [91.9, 25.9], [91.7, 25.9], [91.7, 25.7]]]
-            }
-        })
-
-    return {'type': 'FeatureCollection', 'vclass': vclass, 'horizon_h': horizon, 'features': features}
+    try:
+        return list_pois(req)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
