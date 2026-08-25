@@ -3,38 +3,81 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --header-height: 4rem;
+    --sidebar-width: 17rem;
+    --sidebar-collapsed-width: 4.5rem;
+  }
+
   body {
-    @apply bg-[#0B0F19] text-gray-100;
+    @apply bg-slate-50 text-slate-800 font-sans;
   }
 }
 
-/* Glassmorphism styling */
-.glass-panel {
-  background: rgba(17, 24, 39, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-panel-glow {
-  background: rgba(17, 24, 39, 0.85);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-/* Custom scrollbar */
+/* Custom Scrollbar for enterprise dashboards */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #0B0F19;
+  background: #f1f5f9;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #374151;
-  border-radius: 4px;
+  background: #cbd5e1;
+  border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #4B5563;
+  background: #94a3b8;
 }
+
+.custom-card {
+  @apply bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow transition-all duration-200;
+}
+
+/* Custom Leaflet Styling for NE-Setu Stitch Theme */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.nesetu-leaflet-popup .leaflet-popup-content-wrapper {
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 1rem;
+  padding: 0.25rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.nesetu-leaflet-popup .leaflet-popup-content {
+  margin: 8px 12px;
+  line-height: 1.4;
+}
+
+.nesetu-leaflet-popup .leaflet-popup-tip {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: none;
+}
+
+.nesetu-leaflet-popup a.leaflet-popup-close-button {
+  top: 8px;
+  right: 8px;
+  color: #94a3b8;
+  font-size: 16px;
+  padding: 4px;
+}
+
+.nesetu-leaflet-popup a.leaflet-popup-close-button:hover {
+  color: #0f172a;
+}
+
+.nesetu-custom-vehicle-marker,
+.nesetu-custom-incident-marker,
+.nesetu-custom-weather-badge {
+  background: transparent;
+  border: none;
+}
+

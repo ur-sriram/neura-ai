@@ -7,19 +7,34 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0B0F19',
-        surface: '#111827',
-        'surface-card': '#1F2937',
-        border: '#374151',
-        primary: '#3B82F6',
-        secondary: '#10B981',
-        accent: '#8B5CF6',
-        warning: '#F59E0B',
-        danger: '#EF4444',
+        brand: {
+          50: '#f0f7ff',
+          100: '#e0effe',
+          200: '#bae0fd',
+          300: '#7cc7fb',
+          400: '#36abf7',
+          500: '#0c8fe9',
+          600: '#0170c7',
+          700: '#0259a1',
+          800: '#064b85',
+          900: '#0a3f6f',
+          950: '#072849',
+        },
+        navy: {
+          800: '#152238',
+          900: '#0f172a',
+          950: '#090d16',
+        },
+        gov: {
+          emerald: '#047857',
+          saffron: '#d97706',
+          blue: '#1d4ed8',
+          slate: '#334155'
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      }
+        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
     },
   },
   plugins: [],
